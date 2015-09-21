@@ -1,0 +1,6 @@
+[v1]
+pwd
+cd %dir%
+pwd
+cd asdf
+pwd

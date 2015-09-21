@@ -27,10 +27,10 @@ function main($argv) {
     }
 	
 	$branch = '';
-	if( strpos($argv[1],'.') === FALSE )
+	if ( strpos($argv[1], '.') === FALSE ) {
 	    $run_file_name = $argv[1] . '.run';
-	else{
-		list($branch, $run_file_name) = explode('.',$argv[1]);
+    } else {
+		list($branch, $run_file_name) = explode('.', $argv[1]);
 	    $run_file_name .= '.run';
 	}
     $command_set = trim($argv[2]);
@@ -49,11 +49,11 @@ function main($argv) {
         exit(1);
     }
 
-	if(isset($variables['all'])){
-		foreach($variables['all'] as $key => $vars){
+	if (isset($variables['all'])) {
+		foreach ($variables['all'] as $key => $vars) {
 			run_commands($commands, $vars);
 		}
-	}else if(isset($variables['master'])){
+	} else if (isset($variables['master'])) {
 		run_commands($commands, $variables['master']);
 	}
 
@@ -108,14 +108,15 @@ function run_commands($commands, $variables){
 function parse_variable_file($file_path, $branch='') {
     $variables = parse_ini_file($file_path, true);
     if ($variables) {
-		if(!empty($branch) && $branch!='master' && isset($variables[$branch]))
+		if (!empty($branch) && $branch != 'master' && isset($variables[$branch])) {
 			$build_set = $branch;
-		else
-			$build_set = $variables['master']['build'];
-		if($build_set == 'all'){
+        } else {
+            $build_set = $variables['master']['build'];
+        }
+		if ($build_set == 'all') {
 			unset($variables['master']);
 			return array('all' => $variables);
-		}else{
+		} else {
 			if (!empty($variables[$build_set])) {
 				return array('master' => $variables[$build_set]);
 			} else {
@@ -200,6 +201,10 @@ function parse_command($command, $variables) {
 /**
  * Execute a command in the local shell.
  *
+ * This function also implements special case handling for the following 
+ * command regexes.
+ * - /^cd (.*)$/
+ *
  * @param string $command
  *      The command string to be executed by the local shell.
  * @return array
@@ -210,7 +215,25 @@ function parse_command($command, $variables) {
 function execute_command($command) {
     $stdout = array();
     $return_value = 0;
-    exec($command, $stdout, $return_value);
+    $cd_pattern = '/^cd (.*)$/';
+    $cd_check = array();
+    preg_match($cd_pattern, $command, $cd_check);
+    if (empty($cd_check)) {
+        exec($command, $stdout, $return_value);
+    } else {
+        $raw_path = empty($cd_check[1]) ? '' : $cd_check[1];
+        $raw_path = trim($raw_path);
+        $abs_path = realpath($raw_path);
+        if ($abs_path) {
+            if (!chdir($abs_path)) {
+                $return_value = 1;
+                $stdout[] = 'Could not cd to ' . $abs_path;
+            }
+        } else {
+            $return_value = 1;
+            $stdout[] = 'Could not cd to ' . $cd_check[1];
+        }
+    }
     if ($return_value !== 0) {
         throw new Exception('Error: ' . end($stdout));
     } else {
