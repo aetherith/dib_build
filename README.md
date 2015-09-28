@@ -67,6 +67,11 @@ cd ../some/directory/in/the/path
 // Variable substitution is done by wrapping the variable name in '%'. If a 
 // literal '%' is required, use '%%' instead.
 mysql -u %username% -p%password% %database%
+
+// To maintain cross system compatibility remember to wrap PHP strings run  
+// through 'drush eval' in "" to prevent sh from interpreting function calls  
+// in your PHP as shell function calls.  
+drush eval "php_function_call()"
 ```
 
 ### install.run
