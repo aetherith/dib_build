@@ -94,6 +94,11 @@ cleanly on top of the commands and any post-deploy instructions from the
 previous version.
 
 # Use
+Running the script from the commandline is easy to do and runs all commands in
+the requested _.run_ file relative to the current working directory. The
+optional branch key allows the user to override the _build_ variable in
+_build.ini_ on a per execution basis.
+
 ```bash
 php build.php [[optional branch key].][.run file name] [section in .run file]
 ```
